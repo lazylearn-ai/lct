@@ -57,7 +57,7 @@ elif page == "Загрузка видео":
 
             # получение количества кадров в секунду
             cap = cv2.VideoCapture(source_video_path)
-            fps = cap.get(cv2.CV_CAP_PROP_FPS)
+            fps = cap.get(cv2.CAP_PROP_FPS)
             
             videoEntity = Video(
                 start_path=source_video_path,
