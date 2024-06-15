@@ -3,6 +3,30 @@ import pandas as pd
 import plotly.express as px
 
 
+# таймлайн
+def create_timeline(video_id, fps):
+    conn = sqlite3.connect('DataBase.db')
+    df = pd.read_sql(
+    f"""
+        SELECT 
+          box.object_class, 
+          CAST(MIN(frame.number_in_video) / {fps} AS INTEGER) AS first_appearance, 
+          CAST(MAX(frame.number_in_video) / {fps} AS INTEGER) AS last_appearance,
+          CAST(MAX(frame.number_in_video) / {fps} AS INTEGER) - CAST(MIN(frame.number_in_video) / 30 AS INTEGER) AS diff
+        FROM 
+          'frame' 
+        JOIN 
+          box ON frame.id = box.frame_id
+        WHERE 
+          frame.video_id = {video_id}
+        GROUP BY 
+          box.object_class
+        ORDER BY 
+          first_appearance;
+    """, conn)
+    return df
+
+
 # распределение уверенности модели по данным
 def confidence_distribution(video_id):
     con = sqlite3.connect('DataBase.db')

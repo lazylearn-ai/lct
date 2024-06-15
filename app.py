@@ -6,7 +6,9 @@ from models import Video
 import os
 from tempstorage import write_temp
 import sqlite3
-from analytics import confidence_distribution, count_by_class
+from analytics import confidence_distribution, count_by_class, create_timeline
+import cv2
+
 
 # приложение
 pages = ["Загрузка фотографии", "Загрузка видео", "О приложении"]
@@ -52,6 +54,10 @@ elif page == "Загрузка видео":
             # сохранение исходного видео
             with open(source_video_path, "wb") as f:
                 f.write(file_bytes)
+
+            # получение количества кадров в секунду
+            cap = cv2.VideoCapture(source_video_path)
+            fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
             
             videoEntity = Video(
                 start_path=source_video_path,
@@ -71,6 +77,10 @@ elif page == "Загрузка видео":
             video_file = open(predicted_video, 'rb')
             video_bytes = video_file.read()
             st.video(video_bytes, use_container_width=True)
+
+            # построение таймлайна
+            timeline = create_timeline(videoEntity.id, fps)
+            st.table(timeline)
 
             # построение графиков
             g10, g100 = confidence_distribution(videoEntity.id)
