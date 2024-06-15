@@ -79,8 +79,20 @@ elif page == "Загрузка видео":
             st.video(video_bytes, use_container_width=True)
 
             # построение таймлайна
+            st.subheader("Таймлайн")
+            st.write()
             timeline = create_timeline(videoEntity.id, fps)
-            st.table(timeline)
+            for row in timeline.values:
+                obj_class = row[0]
+                first_appearance = row[1]
+                last_appearance = row[2]
+                diff = row[3]
+
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("Класс", obj_class)
+                col2.metric("Первое появление", str(first_appearance) + "с")
+                col3.metric("Последнее появление", str(last_appearance) + "с")
+                col4.metric("Длина участка видеоряда", str(diff) + "c")
 
             # построение графиков
             g10, g100 = confidence_distribution(videoEntity.id)
