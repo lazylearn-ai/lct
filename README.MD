@@ -31,6 +31,7 @@ docker run -p 8501:8501
 ```
 git clone https://github.com/lazylearn-ai/lct
 cd lct
+python -m database
 pip install -r requirements.txt
 streamlit run app.py
 ```

@@ -11,12 +11,12 @@ import cv2
 
 
 # приложение
-pages = ["Загрузка фотографии", "Загрузка видео", "О приложении"]
+pages = ["Загрузка фотографий", "Загрузка видео", "О приложении"]
 page = st.sidebar.selectbox("Выберите страницу", pages)
 
 
-if page == "Загрузка фотографии":
-    st.title("Загрузка фотографии")
+if page == "Загрузка фотографий":
+    st.title("Загрузка фотографий")
     uploaded_files = st.file_uploader("Выберите фотографию", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
     if uploaded_files is not None and len(uploaded_files) > 0:
         proj_folder = f"runs/photos/{uuid4()}/source/"
@@ -160,6 +160,21 @@ elif page == "О приложении":
              Это приложение, которое позволяет выполнять детекцию беспилотных летательных аппаратов и других объектов 
              с помощью нейросети YOLO. Приложение сохраняет информацию о загружаемых фото и видео, проводит детекцию и аналитику.
              """)
+    with open("Техническая документация.docx", "rb") as tfp:
+        tbtn = st.download_button(
+            label="Скачать техническую документацию",
+            data=tfp,
+            file_name="Техническая документация.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+    with open("Руководство пользователя.docx", "rb") as ufp:
+        ubtn = st.download_button(
+            label="Скачать пользовательскую документацию",
+            data=ufp,
+            file_name="Руководство пользователя.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
     st.divider()
     st.image("logo1.png")
     st.divider()
+
