@@ -3,6 +3,25 @@ import pandas as pd
 import plotly.express as px
 
 
+# аналитика занимамой объектом площади на изображении
+def percent_area(archive_id):
+    conn = sqlite3.connect('DataBase.db')
+    df = pd.read_sql(
+    f"""
+        SELECT object_class, MIN(h * w) AS min_percent, AVG(h * w) AS avg_percent, MAX(h * w) AS max_percent
+        FROM image_box JOIN image on image.id = image_box.image_id
+        WHERE archive_id = {archive_id}
+        GROUP BY object_class
+    """, conn)
+
+    df_long = pd.melt(df, id_vars=['object_class'], value_vars=['min_percent', 'avg_percent', 'max_percent'], var_name='percent_type', value_name='percent_value')
+
+    fig = px.bar(df_long, x='object_class', y='percent_value', color='percent_type', 
+                 color_discrete_map={'min_percent': 'blue', 'avg_percent': 'lightgreen', 'max_percent': 'red'}, 
+                 barmode='group')
+    return fig
+
+
 # общая круговая диаграмма количества объектов на изображениях
 def count_by_image(archive_id):
     con = sqlite3.connect('DataBase.db')

@@ -6,7 +6,7 @@ from models import Video
 import os
 from tempstorage import write_temp
 import sqlite3
-from analytics import confidence_distribution, count_by_class, create_timeline, create_danger_timeline, count_by_image, count_object
+from analytics import confidence_distribution, count_by_class, create_timeline, create_danger_timeline, count_by_image, count_object, percent_area
 import cv2
 
 
@@ -52,6 +52,11 @@ if page == "Загрузка фотографии":
             col1.metric("Класс", obj_class)
             col2.metric("Количество в численном виде", str(obj_count))
             col3.metric("Количество в процентном виде", str(obj_perc) + "%")
+
+        st.subheader("Площадь объектов")
+        st.write("График показывает минимальную, среднюю и максимальную площадь найденных объектов по классам.")
+        g_perc = percent_area(archive_id) 
+        st.plotly_chart(g_perc, theme="streamlit", use_container_width=True)
             
 
 elif page == "Загрузка видео":
@@ -118,6 +123,15 @@ elif page == "Загрузка видео":
             # построение таймлайна опасных объектов
             st.subheader("Таймлайн (опасные объекты)")
             st.write("Показывает ключевые моменты, на которых замечены объекты, представляющие угрозу.") 
+            st.markdown("""
+                        Атрибуты:
+                        * chain_id - идентификатор строки
+                        * start_sec - начало появления опасного объекта
+                        * end_sec - конец появления опасного объекта
+                        * min_confidence - минимальный confidence на временном отрезке
+                        * max_confidence - максимальный confidence на временном отрезке
+                        * avg_confidence - средний confidence на временном отрезке
+                        """)
             timeline_copter = create_danger_timeline(videoEntity.id, fps, 'bpla_copter')
             timeline_plain = create_danger_timeline(videoEntity.id, fps, 'bpla_plain')
             st.markdown("**БПЛА коптерного типа**")
@@ -144,5 +158,8 @@ elif page == "О приложении":
     st.title("О приложении")
     st.write("""
              Это приложение, которое позволяет выполнять детекцию беспилотных летательных аппаратов и других объектов 
-             с помощью нейросети YOLO. Приложение сохраняет информацию о загружаемых видео, проводит детекцию и аналитику.
+             с помощью нейросети YOLO. Приложение сохраняет информацию о загружаемых фото и видео, проводит детекцию и аналитику.
              """)
+    st.divider()
+    st.image("logo1.png")
+    st.divider()
