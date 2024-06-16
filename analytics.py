@@ -3,6 +3,39 @@ import pandas as pd
 import plotly.express as px
 
 
+# общая круговая диаграмма количества объектов на изображениях
+def count_by_image(archive_id):
+    con = sqlite3.connect('DataBase.db')
+    df = pd.read_sql(
+        f"""
+            SELECT count_boxes, count(image_id) AS count_images FROM
+                (SELECT image_id, count(object_class) as count_boxes
+                FROM image join image_box on image.id = image_box.image_id
+                WHERE archive_id = {archive_id}
+                GROUP BY image_id) subquery
+            GROUP BY count_boxes
+            ORDER BY count_boxes
+        """, con)
+
+    fig = px.pie(df, names='count_boxes', values='count_images',
+                 title='Распределение количества объектов на изображениях')
+    return fig
+
+
+# количество изображений по классам в числовом и процентном представлении
+def count_object(archive_id):
+    conn = sqlite3.connect('DataBase.db')
+    df = pd.read_sql(
+    f"""
+        SELECT object_class, COUNT(DISTINCT image_id) as count,
+            (100 * COUNT(DISTINCT image_id)) / (SELECT COUNT(DISTINCT id) FROM image) AS percent
+        FROM image_box JOIN image on image.id = image_box.image_id
+        WHERE archive_id = {archive_id}
+        GROUP BY object_class
+    """, conn)
+    return df
+
+
 # таймлайн
 def create_timeline(video_id, fps):
     conn = sqlite3.connect('DataBase.db')

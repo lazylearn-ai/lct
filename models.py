@@ -53,8 +53,8 @@ class Archive:
     def save_to_db(self, con):
         with con:
             cur = con.cursor()
-            cur.execute("INSERT INTO video (path) VALUES (?)",
-                       (self.path))
+            cur.execute("INSERT INTO archive (path) VALUES (?)",
+                       (self.path,))
             self.id = cur.lastrowid
 
 class Image:
@@ -65,7 +65,7 @@ class Image:
     def save_to_db(self, con):
         with con:
             cur = con.cursor()
-            cur.execute("INSERT INTO frame (archive_id, path) VALUES (?, ?)",
+            cur.execute("INSERT INTO image (archive_id, path) VALUES (?, ?)",
                        (self.archive_id, self.path))
             self.id = cur.lastrowid
 
@@ -81,6 +81,6 @@ class ImageBox:
     def save_to_db(self, con):
         with con:
             cur = con.cursor()
-            cur.execute("INSERT INTO box (image_id, x, y, w, h, object_class) VALUES (?, ?, ?, ?, ?, ?)",
+            cur.execute("INSERT INTO image_box (image_id, x, y, w, h, object_class) VALUES (?, ?, ?, ?, ?, ?)",
                        (self.image_id, self.x, self.y, self.w, self.h, self.object_class))
             self.id = cur.lastrowid

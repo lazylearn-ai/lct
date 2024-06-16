@@ -45,7 +45,14 @@ def predict_photos(proj_folder):
 
         boxes = contents.split("\n") 
         for box in boxes:
-            box = list(map(float, box.split(";")))
+            box = box.split(";")
+            if len(box) < 5:
+                continue
+            box_cleaned = []
+            for i in box:
+                if i != "" and i != " ":
+                    box_cleaned.append(i)
+            box = list(map(float, box_cleaned))
             box[0] = int(box[0])
             cls = model_photos.names[box[0]]
             x = box[1]
@@ -62,7 +69,7 @@ def predict_photos(proj_folder):
                 object_class = cls
             )
             con = sqlite3.connect('DataBase.db')
-            boxEntity.save_to_db()
+            boxEntity.save_to_db(con)
 
     return zip_file, archiveEntity.id  
 

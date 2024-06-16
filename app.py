@@ -6,7 +6,7 @@ from models import Video
 import os
 from tempstorage import write_temp
 import sqlite3
-from analytics import confidence_distribution, count_by_class, create_timeline, create_danger_timeline
+from analytics import confidence_distribution, count_by_class, create_timeline, create_danger_timeline, count_by_image, count_object
 import cv2
 
 
@@ -33,7 +33,26 @@ if page == "Загрузка фотографии":
                 file_name="predictions.zip",
                 mime="application/zip"
             )
+
         # построение графиков
+        st.subheader("Количество изображений")
+        st.write("Показывает количество снимков (в процентах), сгруппированных по количеству объектов на них.")
+        g_class = count_by_image(archive_id) 
+        st.plotly_chart(g_class, theme="streamlit", use_container_width=True)
+
+        st.subheader("Количество изображений по классам")
+        st.write("Показывает количество изображений по классам в числовом и процентном представлении.") 
+        df_counts = count_object(archive_id)
+        for row in df_counts.values:
+            obj_class = row[0] 
+            obj_count = row[1]
+            obj_perc = row[2]
+
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Класс", obj_class)
+            col2.metric("Количество в численном виде", str(obj_count))
+            col3.metric("Количество в процентном виде", str(obj_perc) + "%")
+            
 
 elif page == "Загрузка видео":
     st.title("Загрузка видео")
