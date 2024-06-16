@@ -151,7 +151,7 @@ elif page == "Загрузка видео":
 
             st.subheader("Количество объектов")
             st.write("Показывает количество объектов каждого класса для каждой секунды видео.")
-            g_class = count_by_class(videoEntity.id, fps) 
+            g_class = count_by_class(videoEntity.id, 30) 
             st.plotly_chart(g_class, theme="streamlit", use_container_width=True)
 
 elif page == "О приложении":
