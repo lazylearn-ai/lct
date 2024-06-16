@@ -170,15 +170,15 @@ def count_by_class(video_id, n):
               UNION ALL SELECT 'bird'
               UNION ALL SELECT 'bpla_plain' 
             )
-            SELECT CAST(frame_id / {n} AS INTEGER) AS num_n_frames, object_class, avg(count_by_class) AS count_by_class
+            SELECT CAST(number_in_video / {n} AS INTEGER) AS num_n_frames, object_class, avg(count_by_class) AS count_by_class
             FROM (
-              SELECT frame.id as frame_id, ac.object_class, COALESCE(COUNT(box.confidence), 0) AS count_by_class
+              SELECT frame.id as frame_id, ac.object_class, COALESCE(COUNT(box.confidence), 0) AS count_by_class, number_in_video
               FROM frame
               CROSS JOIN all_classes ac
               LEFT JOIN box ON frame.id = box.frame_id AND ac.object_class = box.object_class
               WHERE frame.video_id = {video_id}
-              GROUP BY frame.id, ac.object_class) subquery
-            GROUP BY CAST(frame_id / {n} AS INTEGER), object_class
+              GROUP BY frame.number_in_video, ac.object_class) subquery
+            GROUP BY CAST(number_in_video / {n} AS INTEGER), object_class
         """, con)
 
     fig = px.line(df, x='num_n_frames', y='count_by_class', color='object_class', 
