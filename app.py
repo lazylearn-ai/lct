@@ -6,7 +6,7 @@ from models import Video
 import os
 from tempstorage import write_temp
 import sqlite3
-from analytics import confidence_distribution, count_by_class, create_timeline
+from analytics import confidence_distribution, count_by_class, create_timeline, create_danger_timeline
 import cv2
 
 
@@ -25,14 +25,15 @@ if page == "Загрузка фотографии":
             img = Image.open(file)
             img.save(proj_folder + file.name)
         st.info("Начинаю обработку..")
-        predictions_zipfile_path = predict_photos(proj_folder)
+        predictions_zipfile_path, archive_id = predict_photos(proj_folder) 
         with open(predictions_zipfile_path, "rb") as fp:
             btn = st.download_button(
-                label="Download ZIP",
+                label="Скачать ZIP",
                 data=fp,
                 file_name="predictions.zip",
                 mime="application/zip"
             )
+        # построение графиков
 
 elif page == "Загрузка видео":
     st.title("Загрузка видео")
@@ -76,23 +77,34 @@ elif page == "Загрузка видео":
             # отрисовка
             video_file = open(predicted_video, 'rb')
             video_bytes = video_file.read()
-            st.video(video_bytes, use_container_width=True)
+            st.video(video_bytes)
+
 
             # построение таймлайна
-            st.subheader("Таймлайн")
-            st.write()
+            st.subheader("Таймлайн (базовый)")
+            st.write("Показывает основные моменты видео.") 
             timeline = create_timeline(videoEntity.id, fps)
             for row in timeline.values:
-                obj_class = row[0]
+                obj_class = row[0] 
                 first_appearance = row[1]
                 last_appearance = row[2]
                 diff = row[3]
 
-                col1, col2, col3, col4 = st.columns(4)
-                col1.metric("Класс", obj_class)
+                col1, col2, col3 = st.columns(3)
+                col1.metric("Класс", obj_class, str(diff) + "c")
                 col2.metric("Первое появление", str(first_appearance) + "с")
                 col3.metric("Последнее появление", str(last_appearance) + "с")
-                col4.metric("Длина участка видеоряда", str(diff) + "c")
+
+
+            # построение таймлайна опасных объектов
+            st.subheader("Таймлайн (опасные объекты)")
+            st.write("Показывает ключевые моменты, на которых замечены объекты, представляющие угрозу.") 
+            timeline_copter = create_danger_timeline(videoEntity.id, fps, 'bpla_copter')
+            timeline_plain = create_danger_timeline(videoEntity.id, fps, 'bpla_plain')
+            st.markdown("**БПЛА коптерного типа**")
+            st.table(timeline_copter)
+            st.markdown("**БПЛА самолетного типа**")
+            st.table(timeline_plain)
 
             # построение графиков
             g10, g100 = confidence_distribution(videoEntity.id)
@@ -104,9 +116,9 @@ elif page == "Загрузка видео":
             with tab100:
                 st.plotly_chart(g100, theme="streamlit", use_container_width=True)
 
-            g_class = count_by_class(videoEntity.id)
-            st.subheader("Название")
-            st.write("О чем")
+            st.subheader("Количество объектов")
+            st.write("Показывает количество объектов каждого класса для каждой секунды видео.")
+            g_class = count_by_class(videoEntity.id, fps) 
             st.plotly_chart(g_class, theme="streamlit", use_container_width=True)
 
 elif page == "О приложении":

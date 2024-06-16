@@ -34,3 +34,32 @@ with con:
           FOREIGN KEY (frame_id) REFERENCES frame(id)
         );
     """)
+with con:
+ con.execute("""
+     CREATE TABLE archive (
+       id INTEGER PRIMARY KEY AUTOINCREMENT,
+       path TEXT
+     );
+ """)
+with con:
+    con.execute("""
+        CREATE TABLE image (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          archive_id INTEGER,
+          path TEXT,
+          FOREIGN KEY (archive_id) REFERENCES archive(id)
+        );
+    """)
+with con:
+    con.execute("""
+        CREATE TABLE image_box (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          image_id INTEGER,
+          x REAL,
+          y REAL,
+          w REAL,
+          h REAL,
+          object_class TEXT,
+          FOREIGN KEY (image_id) REFERENCES image(id)
+        );
+    """)

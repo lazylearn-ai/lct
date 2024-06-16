@@ -4,7 +4,7 @@ import zipfile
 from glob import glob
 import supervision as sv
 import numpy as np
-from models import Frame, Box
+from models import Frame, Box, ImageBox, Archive, Image
 from tempstorage import read_temp
 import sqlite3
 
@@ -14,7 +14,7 @@ model_videos = YOLO("weights.pt")
 
 def predict_photos(proj_folder):
     output_folder = proj_folder.replace("source/", "prediction/labels/")
-    model_photos.predict(proj_folder, save_txt=True, project=proj_folder.replace("source/", ""), name="prediction")
+    model_photos.predict(proj_folder, conf=0.6, save_txt=True, project=proj_folder.replace("source/", ""), name="prediction")
     for file in glob(output_folder + "*"):
         with open(file, "r") as f:
             contents = f.read().replace(" ", ";")
@@ -26,7 +26,45 @@ def predict_photos(proj_folder):
             for file in files:
                 file_path = os.path.join(root, file)
                 zf.write(file_path, os.path.relpath(file_path, output_folder))
-    return zip_file
+
+    # парсинг в бд
+    archiveEntity = Archive(path=zip_file)
+    con = sqlite3.connect('DataBase.db')
+    archiveEntity.save_to_db(con)
+    
+    for image_file, label_file in zip(glob(proj_folder + "*"), glob(output_folder + "*")):
+        imageEntity = Image(
+            archive_id=archiveEntity.id,
+            path = image_file
+        )
+        con = sqlite3.connect('DataBase.db')
+        imageEntity.save_to_db(con)
+
+        with open(label_file, "r") as f:
+            contents = f.read()
+
+        boxes = contents.split("\n") 
+        for box in boxes:
+            box = list(map(float, box.split(";")))
+            box[0] = int(box[0])
+            cls = model_photos.names[box[0]]
+            x = box[1]
+            y = box[2]
+            w = box[3]
+            h = box[4]
+
+            boxEntity = ImageBox(
+                image_id = imageEntity.id,
+                x = x,
+                y = y,
+                w = w,
+                h = h,
+                object_class = cls
+            )
+            con = sqlite3.connect('DataBase.db')
+            boxEntity.save_to_db()
+
+    return zip_file, archiveEntity.id  
 
 
 def process_frame(frame: np.ndarray, idx) -> np.ndarray:
@@ -38,7 +76,7 @@ def process_frame(frame: np.ndarray, idx) -> np.ndarray:
     con = sqlite3.connect('DataBase.db')
     frameEntity.save_to_db(con)
 
-    results = model_videos(frame, imgsz=1280, conf=0.5)[0]
+    results = model_videos(frame, imgsz=1280, conf=0.6)[0]
     detections = sv.Detections.from_yolov8(results)
     box_annotator = sv.BoxAnnotator(thickness=4, text_thickness=4, text_scale=2)
     labels = [f"{model_videos.names[class_id]} {confidence:0.2f}" for _, _, confidence, class_id, _ in detections]
