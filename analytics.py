@@ -18,7 +18,9 @@ def percent_area(archive_id):
 
     fig = px.bar(df_long, x='object_class', y='percent_value', color='percent_type', 
                  color_discrete_map={'min_percent': 'blue', 'avg_percent': 'lightgreen', 'max_percent': 'red'}, 
-                 barmode='group')
+                 labels={'percent_value': "Площадь объекта в процентах", 
+                         'confidence_level': "Класс",
+                         'percent_type': 'Тип аггрегации'})
     return fig
 
 

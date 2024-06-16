@@ -14,7 +14,7 @@ model_videos = YOLO("weights.pt")
 
 def predict_photos(proj_folder):
     output_folder = proj_folder.replace("source/", "prediction/labels/")
-    model_photos.predict(proj_folder, conf=0.6, save_txt=True, project=proj_folder.replace("source/", ""), name="prediction")
+    model_photos.predict(proj_folder, conf=0.5, save_txt=True, project=proj_folder.replace("source/", ""), name="prediction")
     for file in glob(output_folder + "*"):
         with open(file, "r") as f:
             contents = f.read().replace(" ", ";")
@@ -83,7 +83,7 @@ def process_frame(frame: np.ndarray, idx) -> np.ndarray:
     con = sqlite3.connect('DataBase.db')
     frameEntity.save_to_db(con)
 
-    results = model_videos(frame, imgsz=1280, conf=0.6)[0]
+    results = model_videos(frame, imgsz=1280, conf=0.5)[0]
     detections = sv.Detections.from_yolov8(results)
     box_annotator = sv.BoxAnnotator(thickness=4, text_thickness=4, text_scale=2)
     labels = [f"{model_videos.names[class_id]} {confidence:0.2f}" for _, _, confidence, class_id, _ in detections]
